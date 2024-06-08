@@ -1,48 +1,59 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Center, Tooltip, UnstyledButton, Stack, rem } from '@mantine/core';
 import {
   IconHome2,
   IconGauge,
-  IconDeviceDesktopAnalytics,
-  IconFingerprint,
+  IconUsersGroup,
   IconCalendarStats,
   IconUser,
   IconSettings,
   IconLogout,
   IconSwitchHorizontal,
 } from '@tabler/icons-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import classes from './NavbarMinimal.module.css';
 
 interface NavbarLinkProps {
   icon: typeof IconHome2;
   label: string;
   active?: boolean;
+  href?: string;
   onClick?(): void;
 }
 
-function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
+function NavbarLink({ icon: Icon, label, active, href, onClick }: NavbarLinkProps) {
   return (
     <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
-      <UnstyledButton onClick={onClick} className={classes.link} data-active={active ? 'true' : undefined}>
-        <Icon style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-      </UnstyledButton>
+      <Link href={href || '#'}>
+        <UnstyledButton onClick={onClick} className={classes.link} data-active={active ? 'true' : undefined}>
+          <Icon style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+        </UnstyledButton>
+      </Link>
     </Tooltip>
   );
 }
 
 const mockdata = [
-  { icon: IconHome2, label: 'Home' },
-  { icon: IconGauge, label: 'Dashboard' },
-  { icon: IconDeviceDesktopAnalytics, label: 'Analytics' },
-  { icon: IconCalendarStats, label: 'Releases' },
-  { icon: IconUser, label: 'Account' },
-  { icon: IconFingerprint, label: 'Security' },
-  { icon: IconSettings, label: 'Settings' },
+  { icon: IconHome2, label: 'Home', href: '/home'},
+  { icon: IconGauge, label: 'Dashboard', href: '/dashboard'},
+  { icon: IconUsersGroup, label: 'Groups', href: '/groups'},
+  { icon: IconCalendarStats, label: 'Calendar', href: '/calendar'},
+  { icon: IconUser, label: 'Account', href: '/account'},
+  { icon: IconSettings, label: 'Settings', href: '/settings'},
 ];
 
 export function NavbarMinimal() {
-  const [active, setActive] = useState(2);
+  const pathname = usePathname();
+  const [active, setActive] = useState<number | null> (null);
+
+  useEffect(() => {
+    const activeIndex = mockdata.findIndex((link) => link.href === pathname);
+    if (activeIndex !== -1) {
+      setActive(activeIndex);
+    }
+  }, [pathname]);
 
   const links = mockdata.map((link, index) => (
     <NavbarLink
