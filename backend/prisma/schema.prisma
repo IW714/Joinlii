@@ -16,16 +16,23 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  tasks     tasks[]
+  tasks     Task[]
 }
 
-model tasks {
-  id        String   @id @default(cuid())
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id        String    @id @default(cuid())
   title     String
   content   String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    TaskStatus
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   userId    String
-  users     User    @relation(fields: [userId], references: [id])
+  users     User      @relation(fields: [userId], references: [id])
 }
