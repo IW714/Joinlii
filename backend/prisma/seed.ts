@@ -15,6 +15,7 @@ const userData: Prisma.UserCreateInput[] = [
 
 async function main() {
   console.log(`Start seeding ...`);
+  console.log(`Database URL: ${process.env.DATABASE_URL}`); // Add this line to debug
   for (const u of userData) {
       try {
           const user = await prisma.user.create({
