@@ -25,6 +25,7 @@ const handleLogin = async (req, res) => {
             return res.status(401).json({success: false, message: 'Incorrect password.'});
         };
 
+        // TODO: create JWTs
         res.json({success: true, message: 'Login successful.', user: user});
     } catch (err) {
         console.error('Error logging in:', err); // Debugging log
@@ -32,4 +33,4 @@ const handleLogin = async (req, res) => {
     };
 };
 
-export {handleLogin};
+module.exports = {handleLogin};
