@@ -2,11 +2,11 @@
 
 import ProtectedRoute from '../components/ProtectedRoute';
 
-export default function HomePage() {
+export default function ProfilePage() {
   return (
     <ProtectedRoute>
-      <h1>Welcome to Your Dashboard</h1>
-      {/* Home page content goes here */}
+      <h1>Your Profile</h1>
+      {/* Profile content goes here */}
     </ProtectedRoute>
   );
 }
