@@ -1,10 +1,5 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div>
-      <h1>TEST</h1>
-      <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-    </div>
-  );
+export default function HomePage() {
+  return <h1>Welcome to the Home Page</h1>;
 }

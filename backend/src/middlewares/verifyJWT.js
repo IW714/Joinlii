@@ -10,9 +10,9 @@ const verifyJWT = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     jwt.verify(
         token, 
-        process.env.Access_Token_Secret, 
+        process.env.ACCESS_TOKEN_SECRET, 
         (err, decoded) => {
-            if (err) reuturn.sendStatus(403); // invalid token
+            if (err) return res.sendStatus(403); // invalid token
             req.user = decoded.username
             next();
         }
