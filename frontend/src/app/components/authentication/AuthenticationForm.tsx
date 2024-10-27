@@ -56,7 +56,7 @@ export default function AuthenticationForm(props: PaperProps) {
       } else {
         // Registration logic
         console.log('Attempting to register:', { email, password, name });
-        const response = await fetch('http://localhost:3001/api/user', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name }),
