@@ -7,47 +7,57 @@ require('dotenv').config();
 const handleLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
-  }
-
   try {
-    const foundUser = await prisma.user.findUnique({ where: { email } });
-    if (!foundUser) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
-    }
+      // Input Validation
+      if (!email || !password) {
+          console.log('Email and password are required.');
+          return res.status(400).json({ success: false, message: 'Email and password are required.' });
+      }
 
-    const passwordMatch = await bcrypt.compare(password, foundUser.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
-    }
+      // Find the user by email
+      const user = await prisma.user.findUnique({
+          where: { email },
+      });
 
-    const accessToken = jwt.sign(
-      { userId: foundUser.id },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: '15m' }
-    );
+      if (!user) {
+          console.log('User not found with email:', email);
+          return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      }
 
-    const refreshToken = jwt.sign(
-      { userId: foundUser.id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: '7d' }
-    );
+      // Compare passwords
+      const isMatch = await bcrypt.compare(password, user.password);
 
-    // Optionally store the refresh token in the database
+      if (!isMatch) {
+          console.log('Password mismatch for user:', email);
+          return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      }
 
-    // Send the refresh token as an HTTP-only cookie
-    res.cookie('jwt', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use 'true' in production
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      // Generate JWT
+      const accessToken = jwt.sign(
+          { userId: user.id, email: user.email },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: '15m' }
+      );
 
-    res.json({ accessToken });
-  } catch (err) {
-    console.error('Error during login:', err);
-    res.status(500).json({ message: 'Internal server error' });
+      const refreshToken = jwt.sign(
+          { userId: user.id, email: user.email },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: '7d' }
+      );
+
+      // Optionally, set refresh token as HTTP-only cookie
+      res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // Send access token to frontend
+      res.json({ accessToken, user: { id: user.id, name: user.name, email: user.email } });
+  } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };
 

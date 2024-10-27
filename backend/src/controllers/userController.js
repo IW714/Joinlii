@@ -126,7 +126,7 @@ const deleteUser = async (req, res) => {
 };
 
 const getUserProfile = async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.userId;
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -151,7 +151,7 @@ const getUserProfile = async (req, res) => {
 }
 
 const updateUserProfile = async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.userId;
     const { name, preferences } = req.body;
 
     try {
@@ -173,8 +173,8 @@ const updateUserProfile = async (req, res) => {
         res.json(updatedUser);
     } catch (err) {
         console.error('Error updating user:', err);
-        res.statue(500).json({ success: false, message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 }
 
-module.exports = { getAllUsers, handleNewUser, getUserById, updateUser, deleteUser};
+module.exports = { getAllUsers, handleNewUser, getUserById, updateUser, deleteUser, getUserProfile, updateUserProfile };
