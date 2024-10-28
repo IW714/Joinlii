@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Initialize loading state
+  const router = useRouter();
 
   useEffect(() => {
     // Initialize authentication state
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccessToken(null);
       setIsAuthenticated(false);
       localStorage.removeItem('accessToken');
+      router.push('/');
     }
   };
 

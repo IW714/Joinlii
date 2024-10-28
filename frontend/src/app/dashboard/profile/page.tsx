@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '../components/AuthContext';
+import { useAuth } from '../../components/AuthContext';
 import { useRouter } from 'next/navigation';
 import { TextInput, Button, Paper, Alert, Stack } from '@mantine/core';
 

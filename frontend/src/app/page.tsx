@@ -13,13 +13,14 @@ import { useAuth } from './components/AuthContext';
 const HomePage = () => {
   const { isAuthenticated, loading} = useAuth();
   const router = useRouter();
+  const redirect = isAuthenticated ? '/dashboard/profile' : '/login';
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      // Redirect to profile page if authenticated
-      // TODO: May be changed to dashboard once implemented
-      router.push('/profile');
-    }
+    // if (!loading && isAuthenticated) {
+    //   // Redirect to profile page if authenticated
+    //   // TODO: May be changed to dashboard once implemented
+    //   router.push('/profile');
+    // }
   }, [isAuthenticated, loading, router]);
 
   if (loading) {
@@ -78,7 +79,7 @@ const HomePage = () => {
           
           {/* Call-to-Action Button */}
           <div className="mt-8 flex space-x-4">
-            <Button component={Link} href="/login" size="lg" variant="filled">
+            <Button component={Link} href={redirect} size="lg" variant="filled">
               Get Started for Free
             </Button>
           </div>

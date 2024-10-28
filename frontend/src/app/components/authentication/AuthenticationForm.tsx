@@ -52,7 +52,7 @@ export default function AuthenticationForm(props: PaperProps) {
     try {
       if (type === 'login') {
         await login(email, password);
-        router.push('/profile'); // Redirect after successful login
+        router.push('/dashboard/profile'); // Redirect after successful login
       } else {
         // Registration logic
         console.log('Attempting to register:', { email, password, name });
@@ -67,7 +67,7 @@ export default function AuthenticationForm(props: PaperProps) {
         if (response.ok) {
           // Automatically log in the user after registration
           await login(email, password);
-          router.push('/profile');
+          router.push('/dashboard/profile');
         } else {
           const errorData = await response.json();
           console.error('Registration error data:', errorData);
