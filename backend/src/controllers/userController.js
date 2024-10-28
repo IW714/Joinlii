@@ -125,4 +125,56 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { getAllUsers, handleNewUser, getUserById, updateUser, deleteUser};
+const getUserProfile = async (req, res) => {
+    const userId = req.userId;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                preferences: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        res.json(user);
+    } catch (err) {
+        console.error('Error retrieving user:', err);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+const updateUserProfile = async (req, res) => {
+    const userId = req.userId;
+    const { name, preferences } = req.body;
+
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: name, 
+                preferences: preferences
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                preferences: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+        res.json(updatedUser);
+    } catch (err) {
+        console.error('Error updating user:', err);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
+module.exports = { getAllUsers, handleNewUser, getUserById, updateUser, deleteUser, getUserProfile, updateUserProfile };
