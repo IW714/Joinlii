@@ -29,9 +29,8 @@ const HomePage = () => {
         <Image
           src="/assets/joinlii.gif"
           alt="Loading..."
-          width={64}
-          height={64}
-          className="w-16 h-16"
+          width={700}
+          height={700}
           priority
           unoptimized
         />

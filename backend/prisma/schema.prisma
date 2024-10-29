@@ -9,17 +9,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  password    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tasks       Task[]
-  preferences Json?
-}
-
 enum TaskStatus {
   PENDING
   IN_PROGRESS
@@ -35,5 +24,35 @@ model Task {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   userId    String
-  user     User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  images    TaskImage[]
+  groupId   String?
+  group     Group?    @relation(fields: [groupId], references: [id])
+}
+
+model TaskImage {
+  id        String    @id @default(cuid())
+  url       String
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id])
+}
+
+model Group {
+  id        String    @id @default(cuid())
+  name      String
+  users     User[]    @relation("GroupUsers")
+  tasks     Task[]
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+  groups      Group[]  @relation("GroupUsers")
+  preferences Json?
 }
