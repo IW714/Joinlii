@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     Card,
-    Image,
     Text,
     Group,
+    Image,
     Badge,
     Button,
     ActionIcon,
@@ -165,7 +165,7 @@ export default function KanbanBoard() {
     }; 
 
     const openCreateModal = () => setIsCreateModalOpen(true);
-    const closeCreateModel = () => {
+    const closeCreateModal = () => {
         setIsCreateModalOpen(false);
         setNewTask({ title: '', content: '', status: 'PENDING', dueDate: '' });
     }; 
@@ -194,7 +194,7 @@ export default function KanbanBoard() {
                         tasks: [createdTask, ...prev[createdTask.status].tasks],
                     },
                 }));
-                closeCreateModel();
+                closeCreateModal();
             } else {
                 const errorData = await response.json();
                 console.error('Failed to create task:', errorData.message);
@@ -215,4 +215,232 @@ export default function KanbanBoard() {
     };
 
     // TODO: handleEditTask, loading and fetching screen (gif), error handling for auth, return statement
+
+    const handleEditTask = async () => {
+        if (!editTask) return;
+
+        try { 
+            const { title, content, status, dueDate, images, group } = editTask;
+            
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/task/${editTask.id}`, {
+                method: 'PUT', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bear ${accessToken}`,
+                },
+                body: JSON.stringify({ title, content, status, dueDate, images: images.map(img => img.url), groupId: group ? group.id : null }),
+            });
+
+            if (response.ok) { // TODO: there might be an issue, will find out when testing
+                const updatedTask: Task = await response.json();
+                // Update task in columns
+                setColumns((prev) => {
+                    const newColumns = { ...prev };
+                    // Remove task from previous column
+                    Object.keys(newColumns).forEach((colId) => {
+                        newColumns[colId].tasks = newColumns[colId].tasks.filter(task => task.id !== updatedTask.id);
+                    });
+                    // Add task to updated column
+                    newColumns[updatedTask.status].tasks.unshift(updatedTask);
+                    return newColumns;
+                });
+                closeEditModal();
+            } else {
+                const errorData = await response.json();
+                console.error('Failed to update task:', errorData.message);
+            }
+        } catch (err) {
+            console.error('Error updating task:', err);
+        }
+    };
+
+    if (loading || isFetching) {
+        return (
+            <div className="relative">
+                <LoadingOverlay visible={true} />
+                <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                    <Image
+                    src="/assets/joinlii.gif"
+                    alt="Loading..."
+                    width={700}
+                    height={700}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <Text>Please log in to view your tasks.</Text>
+            </div>
+        );
+    }
+    
+    return (
+        <>
+            <Group align="apart" mb="md">
+                <Button onClick={openCreateModal}>
+                    <IconPlus size={16} />
+                    Add Task
+                </Button>
+                {/* Future: Add filters or group selectors here */}
+            </Group>
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+                <Group grow align="start">
+                    {Object.values(columns).map((column) => (
+                        <Droppable droppableId={column.id} key={column.id}>
+                            {(provided, snapshot) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    style={{
+                                        background: snapshot.isDraggingOver ? '#f0f0f0' : 'fafafa',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        minHeight: '400px',
+                                        flex: 1,
+                                    }}
+                                >
+                                    <Text fw={500} mb="sm">
+                                        {column.title}
+                                    </Text>
+                                    {column.tasks.map((task, index) => (
+                                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                                            {(provided, snapshot) => (
+                                                <Card
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    shadow="sm"
+                                                    padding="lg"
+                                                    mb="sm"
+                                                    style={{
+                                                        userSelect: 'none',
+                                                        backgroundColor: snapshot.isDragging ? '#e0e0e0' : '#ffffff',
+                                                        ...provided.draggableProps.style,
+                                                    }}
+                                                >
+                                                    <Group align="apart" mb="xs">
+                                                        <Text fw={500}>{task.title}</Text>
+                                                        <Badge color="green" variant="light">
+                                                            {task.status.replace('_', ' ')}
+                                                        </Badge>
+                                                        {/* Edit Button */}
+                                                        <ActionIcon onClick={() => openEditModal(task)} aria-label="Edit Task">
+                                                            <IconEdit size={16} />
+                                                        </ActionIcon>
+                                                    </Group>
+
+                                                    {task.images.length > 0 && (
+                                                        <Image
+                                                            src={task.images[0].url}
+                                                            alt={task.title}
+                                                            height={100}
+                                                            fit="cover"
+                                                            radius="sm"
+                                                            mb="sm"
+                                                        />
+                                                    )}
+
+                                                    <Text size="sm" c="dimmed">
+                                                        {task.content}
+                                                    </Text>
+
+                                                    {task.dueDate && (
+                                                        <Badge c="red" variant="light" mt="sm">
+                                                            Due: {new Date(task.dueDate).toLocaleDateString()} 
+                                                        </Badge>
+                                                    )}
+                                                </Card>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    ))}
+                </Group>
+            </DragDropContext>
+
+            {/* Modal for Creating a New Task */}
+            <Modal opened={isCreateModalOpen} onClose={closeCreateModal} title="Create New Task">
+                <Stack gap="md">   
+                    <TextInput
+                        label="Title"
+                        placeholder="Task title"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({ ...newTask, title: e.currentTarget.value})}
+                        required
+                    />
+                    <Textarea
+                        label="Content"
+                        placeholder="Task description"
+                        value={newTask.content}
+                        onChange={(e) => setNewTask({ ...newTask, content: e.currentTarget.value})}
+                        required
+                    />
+                    <Select
+                        label="Status"
+                        placeholder="Select status"
+                        data={statusOptions}
+                        value={newTask.status}
+                        onChange={(value) => setNewTask({ ...newTask, status: value || 'PENDING'})}
+                        required
+                    />
+                    <TextInput
+                        label="Due Date"
+                        placeholder="YYYY-MM-DD" // TODO: add date picker, change date format
+                        value={newTask.dueDate}
+                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.currentTarget.value })}
+                        type="date"
+                    />
+                    <Button onClick={handleCreateTask}>Create Task</Button>
+                </Stack>
+            </Modal>
+
+            {/* Modal for Editing an Existing Task 
+                TODO: Change placeholder to prev info */} 
+            <Modal opened={isEditModalOpen} onClose={closeEditModal} title="Edit Task">
+                {editTask && (
+                    <Stack gap="md">   
+                    <TextInput
+                        label="Title"
+                        placeholder="Task title"
+                        value={editTask.title}
+                        onChange={(e) => setEditTask({ ...editTask, title: e.currentTarget.value})}
+                        required
+                    />
+                    <Textarea
+                        label="Content"
+                        placeholder="Task description"
+                        value={editTask.content}
+                        onChange={(e) => setEditTask({ ...editTask, content: e.currentTarget.value})}
+                        required
+                    />
+                    <Select
+                        label="Status"
+                        placeholder="Select status"
+                        data={statusOptions}
+                        value={editTask.status}
+                        onChange={(value) => setEditTask({ ...editTask, status: value as 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' || 'PENDING'})}
+                        required
+                    />
+                    <TextInput
+                        label="Due Date"
+                        placeholder="YYYY-MM-DD" // TODO: add date picker, change date format
+                        value={editTask.dueDate ? editTask.dueDate.slice(0, 10) : ''}
+                        onChange={(e) => setEditTask({ ...editTask, dueDate: e.currentTarget.value })}
+                        type="date"
+                    />
+                    {/* future TODO: Add image upload or selection here */}
+                    <Button onClick={handleEditTask}>Save Changes</Button>
+                </Stack>
+                )}
+            </Modal>
+        </>
+    )
 }

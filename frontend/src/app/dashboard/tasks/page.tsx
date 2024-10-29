@@ -1,12 +1,12 @@
 'use client';
 
 import ProtectedRoute from '../../components/ProtectedRoute';
+import KanbanBoard  from '../../components/task/KanbanBoard';
 
 export default function TaskList() {
   return (
     <ProtectedRoute>
-      <h1>Welcome to Task List</h1>
-      {/* Home page content goes here */}
+      <KanbanBoard />
     </ProtectedRoute>
   );
 }

@@ -1,9 +1,10 @@
-const prisma = require('../prismaClient');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 
 const createTask = async (req, res) => {
     const { title, content, status, dueDate, groupId, images } = req.body;
-    const userId = req.user.id; // verifyJWT middleware attaches user to req object
+    const userId = req.userId; // verifyJWT middleware attaches user to req object
 
     try {
         const newTask = await prisma.task.create({
@@ -28,13 +29,13 @@ const createTask = async (req, res) => {
 };
 
 const getTasks = async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.userId;
 
     try {
         const tasks = await prisma.task.findMany({
             where: { userId },
             include: { images: true, group: true },
-            orderBy: { status: 'asc', createdAt: 'desc'} // TODO: may order differently (by due date)
+            orderBy: { status: 'asc'} // TODO: may order differently (by due date)
         });
         res.status(200).json(tasks);
     } catch (err) {
@@ -46,7 +47,7 @@ const getTasks = async (req, res) => {
 const updateTask = async (req, res) => {
     const { id } = req.params;
     const { title, content, status, dueDate, groupId, images } = req.body;
-    const userId = req.user.id;
+    const userId = req.userId;
 
     try {
         const existingTask = await prisma.task.findUnique({
@@ -82,7 +83,7 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.userId;
 
     try {
         const existingTask = await prisma.task.findUnique({
