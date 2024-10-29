@@ -5,8 +5,6 @@ import KanbanBoard  from '../../components/task/KanbanBoard';
 
 export default function TaskList() {
   return (
-    <ProtectedRoute>
-      <KanbanBoard />
-    </ProtectedRoute>
+    <KanbanBoard />
   );
 }
